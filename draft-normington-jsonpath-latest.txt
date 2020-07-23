@@ -4,8 +4,8 @@
 
 Internet Engineering Task Force                       G. Normington, Ed.
 Internet-Draft                                              VMware, Inc.
-Intended status: Standards Track                            17 July 2020
-Expires: 18 January 2021
+Intended status: Standards Track                            23 July 2020
+Expires: 24 January 2021
 
 
                  JavaScript Object Notation (JSON) Path
@@ -36,7 +36,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 18 January 2021.
+   This Internet-Draft will expire on 24 January 2021.
 
 Copyright Notice
 
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Normington               Expires 18 January 2021                [Page 1]
+Normington               Expires 24 January 2021                [Page 1]
 
 Internet-Draft   JavaScript Object Notation (JSON) Path        July 2020
 
@@ -84,14 +84,14 @@ Table of Contents
          2.6.2.1.  Syntax  . . . . . . . . . . . . . . . . . . . . .   6
          2.6.2.2.  Semantics . . . . . . . . . . . . . . . . . . . .   6
          2.6.2.3.  Union Child . . . . . . . . . . . . . . . . . . .   6
-         2.6.2.4.  Array Index . . . . . . . . . . . . . . . . . . .   7
+         2.6.2.4.  Array Index . . . . . . . . . . . . . . . . . . .   8
    3.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   8
    4.  Security Considerations . . . . . . . . . . . . . . . . . . .   8
-   5.  Alternatives  . . . . . . . . . . . . . . . . . . . . . . . .   8
-   6.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   8
-     6.1.  Normative References  . . . . . . . . . . . . . . . . . .   8
+   5.  Alternatives  . . . . . . . . . . . . . . . . . . . . . . . .   9
+   6.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   9
+     6.1.  Normative References  . . . . . . . . . . . . . . . . . .   9
      6.2.  Informative References  . . . . . . . . . . . . . . . . .   9
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   9
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  10
 
 1.  Introduction
 
@@ -109,7 +109,7 @@ Table of Contents
 
 
 
-Normington               Expires 18 January 2021                [Page 2]
+Normington               Expires 24 January 2021                [Page 2]
 
 Internet-Draft   JavaScript Object Notation (JSON) Path        July 2020
 
@@ -165,7 +165,7 @@ Internet-Draft   JavaScript Object Notation (JSON) Path        July 2020
 
 
 
-Normington               Expires 18 January 2021                [Page 3]
+Normington               Expires 24 January 2021                [Page 3]
 
 Internet-Draft   JavaScript Object Notation (JSON) Path        July 2020
 
@@ -221,7 +221,7 @@ Internet-Draft   JavaScript Object Notation (JSON) Path        July 2020
 
 
 
-Normington               Expires 18 January 2021                [Page 4]
+Normington               Expires 24 January 2021                [Page 4]
 
 Internet-Draft   JavaScript Object Notation (JSON) Path        July 2020
 
@@ -277,7 +277,7 @@ Syntax
 
 
 
-Normington               Expires 18 January 2021                [Page 5]
+Normington               Expires 24 January 2021                [Page 5]
 
 Internet-Draft   JavaScript Object Notation (JSON) Path        July 2020
 
@@ -333,40 +333,66 @@ Syntax
 
 
 
-Normington               Expires 18 January 2021                [Page 6]
+Normington               Expires 24 January 2021                [Page 6]
 
 Internet-Draft   JavaScript Object Notation (JSON) Path        July 2020
 
 
    union-element = union-child ; see below for more alternatives
-   union-child = %x27 *single-quoted %x27 / ; 'string'
-                 %x22 *double-quoted %x22   ; "string"
+   union-child = %x22 *double-quoted %x22 / ; "string"
+                 %x27 *single-quoted %x27   ; 'string'
 
-   single-quoted = %x5C %x27 / ; \' (escaped single quote)
-                   %x5C %x5C / ; \\ (escaped reverse solidus)
-                   %x00-26 / %x28-5B %x5D-D7FF / %xE000-10FFFF
-                               ; any Unicode code point except ' or \
+   double-quoted = dq-unescaped /
+             escape (
+                 %x22 /          ; "    quotation mark  U+0022
+                 %x5C /          ; \    reverse solidus U+005C
+                 %x2F /          ; /    solidus         U+002F
+                 %x62 /          ; b    backspace       U+0008
+                 %x66 /          ; f    form feed       U+000C
+                 %x6E /          ; n    line feed       U+000A
+                 %x72 /          ; r    carriage return U+000D
+                 %x74 /          ; t    tab             U+0009
+                 %x75 4HEXDIG )  ; uXXXX                U+XXXX
 
-   double-quoted = %x5C 5x22 / ; \" (escaped double quote)
-                   %x5C 5x5C / ; \\ (escaped reverse solidus)
-                   %x00-21 / %x23-5B / %x5D-D7FF / %xE000-10FFFF
-                               ; any Unicode code point except " or \
 
-   Note: the syntax does not allow any character other than a quote or
-   reverse solidus to be escaped.
+         dq-unescaped = %x20-21 / %x23-5B / %x5D-10FFFF
+
+   single-quoted = sq-unescaped /
+             escape (
+                 %x27 /          ; '    apostrophe      U+0027
+                 %x5C /          ; \    reverse solidus U+005C
+                 %x2F /          ; /    solidus         U+002F
+                 %x62 /          ; b    backspace       U+0008
+                 %x66 /          ; f    form feed       U+000C
+                 %x6E /          ; n    line feed       U+000A
+                 %x72 /          ; r    carriage return U+000D
+                 %x74 /          ; t    tab             U+0009
+                 %x75 4HEXDIG )  ; uXXXX                U+XXXX
+
+         sq-unescaped = %x20-26 / %x28-5B / %x5D-10FFFF
+
+   escape = %x5C                 ; \
+
+   Note: double-quoted strings follow JSON in RFC 8259 [RFC8259].
+   Single-quoted strings follow an analogous pattern.
 
 Semantics
 
    If the union child is a quoted string, the string must first have the
-   surrounding quotes removed and then be unescaped as describe below.
-   The union child matches any node which is an object having a key
-   equal to the unescaped value of the union child string and selects
-   the value corresponding to that key.  It does not match a node which
-   is not an object.
+   surrounding quotes removed and then be unescaped by replacing each
+   escaped character with its unicode equivalent to produce a key.  The
+   union child matches any node which is an object with this key and
+   selects the value corresponding to the key.  It does not match a node
+   which is not an object.
 
-   After the surrounding quotes have been removed, a string is unescaped
-   by replacing each escaped quote by the corresponding quote and
-   replacing each escaped reverse solidus by a reverse solidus.
+
+
+
+
+Normington               Expires 24 January 2021                [Page 7]
+
+Internet-Draft   JavaScript Object Notation (JSON) Path        July 2020
+
 
 2.6.2.4.  Array Index
 
@@ -382,17 +408,6 @@ Syntax
 
    Note: the syntax does not allow integers with leading zeros such as
    "01" and "-01".
-
-
-
-
-
-
-
-Normington               Expires 18 January 2021                [Page 7]
-
-Internet-Draft   JavaScript Object Notation (JSON) Path        July 2020
-
 
 Semantics
 
@@ -426,6 +441,15 @@ Semantics
    This section gives security considerations, as required by RFC 3552
    [RFC3552].
 
+
+
+
+
+Normington               Expires 24 January 2021                [Page 8]
+
+Internet-Draft   JavaScript Object Notation (JSON) Path        July 2020
+
+
 5.  Alternatives
 
    An analogous standard, JSON Pointer, is provided by RFC 6901
@@ -439,16 +463,6 @@ Semantics
               Requirement Levels", BCP 14, RFC 2119,
               DOI 10.17487/RFC2119, March 1997,
               <https://www.rfc-editor.org/info/rfc2119>.
-
-
-
-
-
-
-Normington               Expires 18 January 2021                [Page 8]
-
-Internet-Draft   JavaScript Object Notation (JSON) Path        July 2020
-
 
    [RFC3629]  Yergeau, F., "UTF-8, a transformation format of ISO
               10646", STD 63, RFC 3629, DOI 10.17487/RFC3629, November
@@ -484,6 +498,14 @@ Internet-Draft   JavaScript Object Notation (JSON) Path        July 2020
               DOI 10.17487/RFC8259, December 2017,
               <https://www.rfc-editor.org/info/rfc8259>.
 
+
+
+
+Normington               Expires 24 January 2021                [Page 9]
+
+Internet-Draft   JavaScript Object Notation (JSON) Path        July 2020
+
+
 Author's Address
 
    Glyn Normington (editor)
@@ -501,4 +523,38 @@ Author's Address
 
 
 
-Normington               Expires 18 January 2021                [Page 9]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Normington               Expires 24 January 2021               [Page 10]
